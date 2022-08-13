@@ -61,6 +61,7 @@ const clientes = [
 //   next();
 // })
 
+//Substitui o middleware de cima.
 app.use(cors());
 
 
@@ -83,6 +84,14 @@ app.get('/api/clientes', (req, res, next) => {
       clientes: documents
     })
   });
+});
+
+//DELETE http://localhost:3000/api/clientes/123456
+app.delete('/api/clientes/:id', (req, res, next) => {
+  Cliente.deleteOne({_id: req.params.id}).then(resultado => {
+    console.log(resultado)
+    res.status(200).json({mensagem: "Cliente removido"})
+  })
 });
 
 module.exports = app;
