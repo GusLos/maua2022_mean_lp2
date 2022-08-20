@@ -33,10 +33,11 @@ export class ClienteService {
       fone: fone,
       email: email,
     };
-    this.httpClient.post<{mensagem: string}>('http://localhost:3000/api/clientes',
+    this.httpClient.post<{mensagem: string, id: string}>('http://localhost:3000/api/clientes',
     cliente).subscribe(
       (dados) => {
         console.log(dados.mensagem);
+        cliente.id = dados.id;
         this.clientes.push(cliente);
         this.listaClientesAtualizada.next([...this.clientes]);
       }

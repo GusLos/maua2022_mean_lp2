@@ -5,6 +5,7 @@ const app = express();
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const Cliente = require('./models/cliente');
+const { collapseTextChangeRangesAcrossMultipleVersions } = require('typescript');
 
 const {
   MONGODB_USER,
@@ -16,8 +17,9 @@ const {
 mongoose.connect(`mongodb+srv://${MONGODB_USER}:${MONGODB_PASSWORD}@${MONGODB_CLUSTER}.mongodb.net/${MONGODB_DATABASE}?retryWrites=true&w=majority`)
 .then(()=>{
   console.log("Conexão Ok")
-}).catch(()=>{
+}).catch((e)=>{
   console.log("Conexão NOK")
+  console.log(e)
 });
 //aqui estamos especificado um 1º middleware (trata o corpo da requisição)
 app.use(bodyParser.json());
@@ -72,9 +74,13 @@ app.post('/api/clientes', (req, res, next) => {
     fone:req.body.fone,
     email:req.body.email,
   })
-  cliente.save();
-  console.log(cliente);
-  res.status(201).json({mensagem: 'Cliente inserido'});
+  cliente.save().then((clienteInserido) => {
+    console.log(cliente);
+    res.status(201).json({
+      mensagem: 'Cliente Inserido',
+      id: clienteInserido._id
+    })
+  });
 });
 
 app.get('/api/clientes', (req, res, next) => {
@@ -89,8 +95,12 @@ app.get('/api/clientes', (req, res, next) => {
 //DELETE http://localhost:3000/api/clientes/123456
 app.delete('/api/clientes/:id', (req, res, next) => {
   Cliente.deleteOne({_id: req.params.id}).then(resultado => {
-    console.log(resultado)
-    res.status(200).json({mensagem: "Cliente removido"})
+    //atualizar a lista local
+    this.clientes = this.clientes.filter(cli => cli.id !== id);
+    this.listaClientesAtualizada.next([...this.clientes]);
+    //notificar os componentes interessados (ClienteListaComponent)
+    console.log(`Cliente de id: ${id} removido.`)
+    res.status(200).json({mensagem: "Cliente removido"});
   })
 });
 
