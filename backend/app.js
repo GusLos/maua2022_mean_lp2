@@ -92,6 +92,18 @@ app.get('/api/clientes', (req, res, next) => {
   });
 });
 
+//GET http://localhost:3000/api/clientes/1234
+app.get('/api/clientes/:id', (req, res) => {
+  Cliente.findById(req.params.id)
+  .then((cli) => {
+    if (cli){
+      res.status(200).json(cli)
+    } else {
+      res.status(404).json({mensagem: "Cliente não encontrado."})
+    }
+  })
+})
+
 //DELETE http://localhost:3000/api/clientes/123456
 app.delete('/api/clientes/:id', (req, res, next) => {
   Cliente.deleteOne({_id: req.params.id}).then(resultado => {
@@ -103,5 +115,23 @@ app.delete('/api/clientes/:id', (req, res, next) => {
     res.status(200).json({mensagem: "Cliente removido"});
   })
 });
+
+// PUT http://localhost:3000/api/clientes/1234
+app.put('/api/clientes/:id', (req, res) => {
+  //1. construir um objeto cliente com os dados extraidos da requisição
+  const cliente = new Cliente({
+    _id: req.params.id,
+    nome: req.body.nome,
+    fone: req.body.fone,
+    email: req.body.email
+  })
+  //2.atualizar o documento que representa o cliente na base gerenciada pelo mongo
+  Cliente.updateOne({_id: req.params.id}, cliente)
+  .then(resultado => {
+    console.log(resultado)
+    //3. responde so cliente que deu tudo certo
+    res.status(204).json({mensagem: 'Atualização realizada com sucesso'})
+  })
+})
 
 module.exports = app;
